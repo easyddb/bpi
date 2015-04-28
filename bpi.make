@@ -27,5 +27,5 @@ libraries[bpi-client][download][tag] = "7.x-2.0.0"
 
 projects[ding_content][type] = "module"
 projects[ding_content][download][type] = "git"
-projects[ding_content][download][url] = "git@github.com:ding2/ding_content.git"
-projects[ding_content][download][tag] = "7.x-2.0.0"
+projects[ding_content][download][url] = "git@github.com:easyddb/ding_content.git"
+projects[ding_content][download][tag] = "7.x-2.0.0+easy"
