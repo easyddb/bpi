@@ -254,6 +254,14 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       return;
     }
 
+    if ($bpi_content['author']) {
+      $uid = _bpi_save_user($bpi_content['author']);
+      $form['#node']->uid = $uid;
+      $form['#node']->name = $bpi_content['author'];
+      $form['uid']['#value '] = $uid;
+      $form['author']['name']['#default_value'] = $bpi_content['author'];
+    }
+
     $form['title']['#default_value'] = isset($bpi_content['title']) ? $bpi_content['title'] : '';
     $teaser = variable_get('bpi_field_teaser', '');
     $body = variable_get('bpi_field_body', '');
@@ -272,6 +280,7 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       }
     }
 
+
     // Guessing where to put 'teaser' text in the form.
     $bpi_teaser = isset($bpi_content['teaser']) ? $bpi_content['teaser'] : '';
     if (isset($form[$teaser][$current_language][0]['summary'])) {
@@ -286,6 +295,38 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
 
     // Guessing where to put 'body' text in the form.
     $bpi_body = isset($bpi_content['body']) ? $bpi_content['body'] : '';
+
+    preg_match_all('/\<\<(\w+)\>\>/', $bpi_body, $matches);
+    $tags = array();
+    if (isset($matches[1])) {
+      $tags = _bpi_save_terms($matches[1]);
+      $form['field_tags'][LANGUAGE_NONE]['#default_value'] = implode(', ', $tags);
+    }
+
+    preg_match_all('/{{(\w+)}}/', $bpi_body, $matches);
+    $artists = array();
+    if (isset($matches[1])) {
+      $artists = _bpi_save_terms($matches[1]);
+      $form['field_artist'][LANGUAGE_NONE]['#default_value'] = implode(', ', $artists);
+    }
+
+    $bpi_body = preg_replace('/(<<\w+>>)|({{\w+}})/', '', $bpi_body);
+
+    if (!empty($bpi_content['category'])) {
+      $tid = _bpi_get_term_tid($bpi_content['category']);
+      $form['field_nodetype'][LANGUAGE_NONE]['#default_value'] = $tid;
+    }
+
+    if (!empty($bpi_content['audience'])) {
+      $tid = _bpi_get_term_tid($bpi_content['audience']);
+      $form['field_genre'][LANGUAGE_NONE]['#default_value'] = $tid;
+    }
+
+    if (!empty($bpi_content['agency_name'])) {
+      $tid = _bpi_get_term_tid($bpi_content['agency_name']);
+      $form['field_source'][LANGUAGE_NONE]['#default_value'] = $tid;
+    }
+
     if (isset($form[$body][$current_language][0]['value'])) {
       $form[$body][$current_language][0]['value']['#default_value'] = $bpi_body;
     }
@@ -313,6 +354,46 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       $form['actions']['push']['#submit'][] = 'bpi_push_directly_callback_action';
     }
   }
+}
+
+function _bpi_save_terms($data) {
+  $names = array();
+  foreach ($data as $name) {
+    $name = db_query("SELECT name FROM taxonomy_term_data WHERE name = :name", array(':name' => $name))->fetchField();
+    if (!$name) {
+
+      $term = new StdClass;
+      $term->name = $name;
+
+      taxonomy_term_save($term);
+
+      $name = $term->name;
+    }
+
+    $names[] = $name;
+  }
+
+  return $names;
+}
+
+function _bpi_save_user($name) {
+  $names = array();
+  $uid = db_query("SELECT uid FROM users WHERE name = :name", array(':name' => $name))->fetchField();
+  if (!$uid) {
+
+    $user = new StdClass;
+    $user->name = $name;
+
+    $user = user_save($user);
+
+    $uid = $user->uid;
+  }
+  return $uid;
+}
+
+function _bpi_get_term_tid($name) {
+  $tid = db_query("SELECT tid FROM taxonomy_term_data WHERE name = :name", array(':name' => $name))->fetchField();
+  return $tid;
 }
 
 /**
@@ -856,4 +937,11 @@ function bpi_error_message($exception, $level) {
 
   // Send the exception to logger.
   watchdog_exception('bpi', $exception);
+}
+
+function bpi_preprocess_bpi_preview_item(&$vars) {
+  preg_match_all('/^(?:.\s*(?!\<\<\w+\>\>|{{\w+}}))*/', $vars['item']['body'], $matches);
+  if (isset($matches[0][0]) && !empty($matches[0][0])) {
+    $vars['item']['body'] = $matches[0][0];
+  }
 }
