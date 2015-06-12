@@ -258,7 +258,7 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       $uid = _bpi_save_user($bpi_content['author']);
       $form['#node']->uid = $uid;
       $form['#node']->name = $bpi_content['author'];
-      $form['uid']['#value '] = $uid;
+      $form['uid']['#value'] = $uid;
       $form['author']['name']['#default_value'] = $bpi_content['author'];
     }
 
@@ -279,7 +279,6 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
         $form[$materials_field][$current_language][$key]['ting_object_id']['#default_value'] = $material_number;
       }
     }
-
 
     // Guessing where to put 'teaser' text in the form.
     $bpi_teaser = isset($bpi_content['teaser']) ? $bpi_content['teaser'] : '';

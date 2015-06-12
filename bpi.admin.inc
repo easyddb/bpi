@@ -210,7 +210,6 @@ function bpi_admin_content_mapping_form($form, $form_state) {
     '#default_value' => variable_get('bpi_field_materials', ''),
   );
 
-
   $form['#attached']['css'][] = drupal_get_path('module', 'bpi') . '/css/bpi-admin.styles.css';
 
   return system_settings_form($form);
