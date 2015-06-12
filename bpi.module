@@ -264,7 +264,7 @@ function bpi_cron() {
     $node->created = isset($current_item['creation']) ? strtotime($current_item['creation']) : 0;
     $node->title = isset($current_item['title']) ? $current_item['title'] : '';
     $uid = 1;
-    if (isset($current_item['author'])) {
+    if (isset($current_item['author']) && !empty($current_item['author'])) {
       $uid = _bpi_save_user($current_item['author']);
       $node->name = $current_item['author'];
     }
