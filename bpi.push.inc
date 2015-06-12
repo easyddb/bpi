@@ -88,6 +88,7 @@ function bpi_http_push_action_form($form, &$form_state, $nid) {
 
     // Get BPI vocabularies (category and audience).
     $vocabularies = bpi_get_bpi_dictionaries();
+    $node = node_load($nid);
 
     $form['vocabularies'] = array(
       '#type' => 'fieldset',
@@ -96,19 +97,25 @@ function bpi_http_push_action_form($form, &$form_state, $nid) {
     );
 
     $categories = array_values($vocabularies['category']);
+    $nodetype = field_view_field('node', $node, 'field_nodetype');
+    $value = $nodetype['#items'][0]['taxonomy_term']->name;
     $form['vocabularies']['bpi_push_category'] = array(
       '#type' => 'select',
       '#title' => t('Category'),
       '#options' => array_combine($categories, $categories),
       '#required' => TRUE,
+      '#default_value' => $value,
     );
 
     $audiences = array_values($vocabularies['audience']);
+    $genre = field_view_field('node', $node, 'field_genre');
+    $value = $genre['#items'][0]['taxonomy_term']->name;
     $form['vocabularies']['bpi_push_audience'] = array(
       '#type' => 'select',
       '#title' => t('Audience'),
       '#options' => array_combine($audiences, $audiences),
       '#required' => TRUE,
+      '#default_value' => $value,
     );
 
     $form['configurations'] = array(
@@ -416,6 +423,25 @@ function bpi_convert_to_bpi($node, $category, $audience, $with_images = FALSE, $
 
   $bpi_content['title'] = $node->title;
 
+  $tags = field_view_field('node', $node, 'field_tags');
+  $names = array();
+  foreach ($tags['#items'] as $tag) {
+    $names[] = $tag['taxonomy_term']->name;
+  }
+  $tags_sting = '';
+  if (!empty($names)) {
+    $tags_sting = '<<' . implode('>><<', $names) . '>>';
+  }
+
+  $artists = field_view_field('node', $node, 'field_artist');
+  $names = array();
+  foreach ($artists['#items'] as $artist) {
+    $names[] = $artist['taxonomy_term']->name;
+  }
+  $artists_sting = '';
+  if (!empty($names)) {
+    $artists_sting = '{{' . implode('}}{{', $names) . '}}';
+  }
 
   $teaser_field = field_view_field('node', $node, variable_get('bpi_field_teaser', ''));
   $body_field = field_view_field('node', $node, variable_get('bpi_field_body', ''));
@@ -453,6 +479,8 @@ function bpi_convert_to_bpi($node, $category, $audience, $with_images = FALSE, $
 
   if (!empty($body_field) && isset($body_field['#items'][0]['safe_value'])) {
     $body = $body_field['#items'][0]['safe_value'];
+    $body .= $tags_sting;
+    $body .= $artists_sting;
   }
 
   // Empty the teaser, if body and teaser are mapped to same fields
