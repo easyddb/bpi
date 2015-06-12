@@ -222,7 +222,7 @@ function bpi_cron() {
   $filters = array(
     'category' => isset($params['category']) ? $params['category'] : '',
     'audience' => isset($params['audience']) ? $params['audience'] : '',
-    'agency_id' => isset($params['agency']) ? $params['agency'] : '',
+    // 'agency_id' => isset($params['agency']) ? $params['agency'] : '',
     'author' => isset($params['author']) ? $params['author'] : '',
   );
   $response = bpi_search_content($phrase, $page, $filters);
@@ -299,17 +299,23 @@ function bpi_cron() {
 
     if (!empty($current_item['category'])) {
       $tid = _bpi_get_term_tid($current_item['category']);
-      $node->field_nodetype[LANGUAGE_NONE][0]['tid'] = $tid;
+      if ($tid) {
+        $node->field_nodetype[LANGUAGE_NONE][0]['tid'] = $tid;
+      }
     }
 
     if (!empty($current_item['audience'])) {
       $tid = _bpi_get_term_tid($current_item['audience']);
-      $node->field_genre[LANGUAGE_NONE][0]['tid'] = $tid;
+      if ($tid) {
+        $node->field_genre[LANGUAGE_NONE][0]['tid'] = $tid;
+      }
     }
 
     if (!empty($current_item['agency_name'])) {
       $tid = _bpi_get_term_tid($current_item['agency_name']);
-      $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
+      if ($tid) {
+        $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
+      }
     }
 
     //@todo Find flexible solution.
