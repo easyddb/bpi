@@ -317,9 +317,9 @@ function bpi_cron() {
       $path = $assets['asset1'];
       $filename = basename($path);
       $managed_file = bpi_fetch_image('public://bpi/' . $filename, $path);
-      if (!is_object($managed_file) && !empty($managed_file->fid)) {
-        $managed_file->uid = 1;
-        $node->field_image[LANGUAGE_NONE][0] = $managed_file;
+      if (is_object($managed_file) && !empty($managed_file->fid)) {
+        $managed_file->uid = $uid;
+        $node->field_image[LANGUAGE_NONE][0] = (array)$managed_file;
       }
     }
     node_save($node);
