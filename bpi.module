@@ -46,6 +46,9 @@ define('BPI_DATE_PICKER_FORMAT', 'Y-m-d');
  */
 define('BPI_ONE_MONTH', 86400 * 30);
 
+include_once 'bpi.syndicate.inc';
+include_once 'bpi.images.inc';
+
 /**
  * Implements hook_menu().
  */
@@ -209,6 +212,126 @@ function bpi_theme($existing, $type, $theme, $path) {
 }
 
 /**
+ * Implements hook_cron().
+ */
+function bpi_cron() {
+  $params = _bpi_build_query();
+  $phrase = isset($params[BPI_SEARCH_PHRASE_KEY]) ? $params[BPI_SEARCH_PHRASE_KEY] : '';
+  $page = pager_find_page();
+  $sort = isset($_GET['sort']) ? $_GET['sort'] : BPI_SORT_DESCENDING;
+  $filters = array(
+    'category' => isset($params['category']) ? $params['category'] : '',
+    'audience' => isset($params['audience']) ? $params['audience'] : '',
+    'agency_id' => isset($params['agency']) ? $params['agency'] : '',
+    'author' => isset($params['author']) ? $params['author'] : '',
+  );
+  $response = bpi_search_content($phrase, $page, $filters);
+  $bpi_nodes = array();
+  // Get agency_id=>agency cache.
+  $agency_cache = array();
+  $cache = cache_get(BPI_AGENCY_CACHE);
+  if ($cache) {
+    $agency_cache = $cache->data;
+  }
+
+  $result = db_query('SELECT bid FROM bpi_syndicated');
+  $bids = array();
+  foreach ($result as $item) {
+    $bids[$item->bid] = $item->bid;
+  }
+
+  foreach ($response as $item) {
+    /* @var $item \Bpi\Sdk\Item\Node */
+    $current_item = $item->getProperties();
+    if (in_array($current_item['id'], $bids)) {
+      continue;
+    }
+
+    $assets = $item->getAssets();
+
+
+    $agency = isset($current_item['agency_name']) ? $current_item['agency_name'] : '';
+    $agency_id = isset($current_item['agency_id']) ? $current_item['agency_id'] : '';
+
+    // Set agency into cache.
+    if (!empty($agency) && empty($agency_cache[$agency_id])) {
+      $agency_cache[$agency_id] = $agency;
+    }
+
+    $node = new StdClass;
+    $node->bpi_id = $current_item['id'];
+    $node->type = 'article';
+    $node->created = isset($current_item['creation']) ? strtotime($current_item['creation']) : 0;
+    $node->title = isset($current_item['title']) ? $current_item['title'] : '';
+    $uid = 1;
+    if (isset($current_item['author'])) {
+      $uid = _bpi_save_user($current_item['author']);
+      $node->name = $current_item['author'];
+    }
+    $node->uid = $uid;
+
+     // Guessing where to put 'body' text in the form.
+    $bpi_body = isset($current_item['body']) ? $current_item['body'] : '';
+
+    preg_match_all('/\<\<(\w+)\>\>/', $bpi_body, $matches);
+    $tags = array();
+    if (isset($matches[1])) {
+      $tags = _bpi_save_terms($matches[1], 'tid');
+      foreach ($tags as $tag) {
+        $node->field_tags[LANGUAGE_NONE][] = array (
+          'tid' => $tag
+        );
+      }
+    }
+
+    preg_match_all('/{{(\w+)}}/', $bpi_body, $matches);
+    $artists = array();
+    if (isset($matches[1])) {
+      $artists = _bpi_save_terms($matches[1], 'tid');
+       foreach ($artists as $artist) {
+        $node->field_artist[LANGUAGE_NONE][] = array (
+          'tid' => $artist
+        );
+      }
+    }
+
+    $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(<<\w+>>)|({{\w+}})/', '', $bpi_body);
+
+    if (!empty($current_item['category'])) {
+      $tid = _bpi_get_term_tid($current_item['category']);
+      $node->field_nodetype[LANGUAGE_NONE][0]['tid'] = $tid;
+    }
+
+    if (!empty($current_item['audience'])) {
+      $tid = _bpi_get_term_tid($current_item['audience']);
+      $node->field_genre[LANGUAGE_NONE][0]['tid'] = $tid;
+    }
+
+    if (!empty($current_item['agency_name'])) {
+      $tid = _bpi_get_term_tid($current_item['agency_name']);
+      $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
+    }
+
+    //@todo Find flexible solution.
+    if (isset($assets['asset1'])) {
+      $path = $assets['asset1'];
+      $filename = basename($path);
+      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $path);
+      if (!is_object($managed_file) && !empty($managed_file->fid)) {
+        $managed_file->uid = 1;
+        $node->field_image[LANGUAGE_NONE][0] = $managed_file;
+      }
+    }
+    node_save($node);
+  }
+
+  // Save changes in agency cache.
+  if (empty($cache) || (!empty($cache) && $agency_cache != $cache->data)) {
+    cache_set(BPI_AGENCY_CACHE, $agency_cache);
+  }
+}
+
+/**
  * Implements hook_form_BASE_FORM_ID_alter().
  *
  * Set some default values for the fields, when syndicating content,
@@ -355,24 +478,23 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-function _bpi_save_terms($data) {
-  $names = array();
+function _bpi_save_terms($data, $field = 'name') {
+  $result = array();
+  $voc = taxonomy_vocabulary_machine_name_load('tags');
   foreach ($data as $name) {
-    $name = db_query("SELECT name FROM taxonomy_term_data WHERE name = :name", array(':name' => $name))->fetchField();
-    if (!$name) {
-
+    $item = db_query("SELECT {$field} FROM taxonomy_term_data WHERE name = :name", array(':name' => $name))->fetchField();
+    if (!$item) {
       $term = new StdClass;
+      $term->vid = $voc->vid;
       $term->name = $name;
-
       taxonomy_term_save($term);
-
-      $name = $term->name;
+      $item = $term->{$field};
     }
 
-    $names[] = $name;
+    $result[] = $item;
   }
 
-  return $names;
+  return $result;
 }
 
 function _bpi_save_user($name) {
@@ -668,9 +790,8 @@ function bpi_ability($nid, $op) {
 function bpi_node_insert($node) {
   if (!empty($node->bpi_id)) {
     try {
-      $bpi = bpi_client_instance();
-      $bpi->syndicateNode($node->bpi_id);
-
+      // $bpi = bpi_client_instance();
+      // $bpi->syndicateNode($node->bpi_id);
       db_merge('bpi_syndicated')
         ->fields(array(
           'nid' => $node->nid,
