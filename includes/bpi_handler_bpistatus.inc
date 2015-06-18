@@ -37,16 +37,6 @@ class bpi_handler_bpistatus extends views_handler_field {
   }
 
   /**
-   * {@inheritdoc}
-   *
-   * Make changes to the field settings form seen by the end user when adding
-   * your field.
-   */
-  function options_form(&$form, &$form_state) {
-    parent::options_form($form, $form_state);
-  }
-
-  /**
    * Render callback handler.
    *
    * Return the markup that will appear in the rendered field.
