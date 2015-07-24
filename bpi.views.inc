@@ -28,8 +28,8 @@ function bpi_views_data() {
     'title' => t('Nid'),
     'help' => t('Node id.'),
     'relationship' => array(
-      'base' => 'node', // The name of the table to join with.
-      'base field' => 'nid', // The name of the field on the joined table.
+      'base' => 'node',
+      'base field' => 'nid',
       'handler' => 'views_handler_relationship',
       'label' => t('Default label for the relationship'),
       'title' => t('Title shown when adding the relationship'),
@@ -51,28 +51,17 @@ function bpi_views_data() {
     ),
   );
 
-  return $data;
-}
-
-function bpi_views_data_alter(&$data) {
-  $data['node']['bpi_syndicated'] = array(
-    'title' => t('BPI status'),
-    'help' => t('BPI reference.'),
-    'relationship' => array(
-      'handler' => 'views_handler_relationship',
-      'base' => 'bpi_syndicated',
-      'base field' => 'nid',
-      'real field' => 'nid',
-      'label' =>t('BPI reference'),
-    ),
-  );
-
-  $data['node']['bpi_syndicated_status'] = array(
-    'title' => t('BPI Node status'),
-    'help' => t('Current node status in BPI.'),
-    'real field' => 'nid',
+  $data['bpi_syndicated']['time'] = array(
+    'title' => t('BPI syndicated'),
+    'help' => t('Add syndicated time as field in view.'),
     'field' => array(
-      'handler' => 'bpi_handler_bpistatus',
+      'handler' => 'bpi_handler_bpisyndicatedtime',
+      'click sortable' => TRUE,
     ),
+    'sort' => array(
+       'handler' => 'views_handler_sort',
+     ),
   );
+
+  return $data;
 }

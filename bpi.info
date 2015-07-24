@@ -17,3 +17,4 @@ files[] = bpi.push.inc
 files[] = bpi.statistics.inc
 files[] = bpi.syndicate.inc
 files[] = includes/bpi_handler_bpistatus.inc
+files[] = includes/bpi_handler_bpisyndicatedtime.inc
