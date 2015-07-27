@@ -212,6 +212,7 @@ function bpi_search_get_items() {
     $bpi_nodes[] = array(
       'bpi_id' => isset($current_item['id']) ? $current_item['id'] : '',
       'title' => isset($current_item['title']) ? $current_item['title'] : '',
+      'syndicated' => isset($current_item['syndicated']) ? $current_item['syndicated'] : '',
       'date' => isset($current_item['pushed']) ? $current_item['pushed'] : '',
       'teaser' => isset($current_item['teaser']) ? $current_item['teaser'] : '',
       'body' => isset($current_item['body']) ? $current_item['body'] : '',
