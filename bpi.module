@@ -259,6 +259,7 @@ function bpi_cron() {
     }
 
     $node = new StdClass;
+    $node->$language = LANGUAGE_NONE;
     $node->bpi_id = $current_item['id'];
     $node->type = 'article';
     $node->created = isset($current_item['creation']) ? strtotime($current_item['creation']) : 0;
