@@ -53,9 +53,6 @@ class bpi_handler_bpisyndicatedtime extends views_handler_field {
    * Determine if this field is click sortable.
    */
   function click_sortable() {
-    echo "<pre>";
-    print_r(1);
-    die();
     return !empty($this->definition['click sortable']);
   }
 
@@ -67,7 +64,7 @@ class bpi_handler_bpisyndicatedtime extends views_handler_field {
   function render($values) {
     $syndicated = '';
     $bpi_mapped_ct = variable_get('bpi_content_type', FALSE);
-    if ($values->node_type == $bpi_mapped_ct) {
+    if ($values->node_type == $bpi_mapped_ct && !empty($values->bpi_syndicated_timestamp)) {
         $syndicated = '<p>' . date('d/m/Y H:i', $values->bpi_syndicated_timestamp) . '</p>';
     }
 
