@@ -248,8 +248,6 @@ function bpi_cron() {
     }
 
     $assets = $item->getAssets();
-
-
     $agency = isset($current_item['agency_name']) ? $current_item['agency_name'] : '';
     $agency_id = isset($current_item['agency_id']) ? $current_item['agency_id'] : '';
 
@@ -297,6 +295,7 @@ function bpi_cron() {
     }
 
     $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(<<\w+>>)|({{\w+}})/', '', $bpi_body);
+    $node->body[LANGUAGE_NONE][0]['format'] = 'ckeditor';
 
     if (!empty($current_item['category'])) {
       $tid = _bpi_get_term_tid($current_item['category']);
