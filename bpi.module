@@ -272,7 +272,7 @@ function bpi_cron() {
      // Guessing where to put 'body' text in the form.
     $bpi_body = isset($current_item['body']) ? $current_item['body'] : '';
 
-    preg_match_all('/\<\<(\w+)\>\>/', $bpi_body, $matches);
+    preg_match_all('/\<\<([\w\s\d]+)\>\>/', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1], 'tid');
@@ -283,7 +283,7 @@ function bpi_cron() {
       }
     }
 
-    preg_match_all('/{{(\w+)}}/', $bpi_body, $matches);
+    preg_match_all('/{{([\w\s\d]+)}}/', $bpi_body, $matches);
     $artists = array();
     if (isset($matches[1])) {
       $artists = _bpi_save_terms($matches[1], 'tid');
@@ -293,8 +293,7 @@ function bpi_cron() {
         );
       }
     }
-
-    $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(<<\w+>>)|({{\w+}})/', '', $bpi_body);
+    $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
     $node->body[LANGUAGE_NONE][0]['format'] = 'ckeditor';
 
     if (!empty($current_item['category'])) {
@@ -424,21 +423,21 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
     // Guessing where to put 'body' text in the form.
     $bpi_body = isset($bpi_content['body']) ? $bpi_content['body'] : '';
 
-    preg_match_all('/\<\<(\w+)\>\>/', $bpi_body, $matches);
+    preg_match_all('/\<\<([\w\s\d]+)\>\>/', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1]);
       $form['field_tags'][LANGUAGE_NONE]['#default_value'] = implode(', ', $tags);
     }
 
-    preg_match_all('/{{(\w+)}}/', $bpi_body, $matches);
+    preg_match_all('/{{([\w\s\d]+)}}/', $bpi_body, $matches);
     $artists = array();
     if (isset($matches[1])) {
       $artists = _bpi_save_terms($matches[1]);
       $form['field_artist'][LANGUAGE_NONE]['#default_value'] = implode(', ', $artists);
     }
 
-    $bpi_body = preg_replace('/(<<\w+>>)|({{\w+}})/', '', $bpi_body);
+    $bpi_body = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
 
     if (!empty($bpi_content['category'])) {
       $tid = _bpi_get_term_tid($bpi_content['category']);
