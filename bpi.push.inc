@@ -510,9 +510,9 @@ function bpi_convert_to_bpi($node, $category, $audience, $with_images = FALSE, $
         $field_value = field_view_field('node', $node, $field_name);
 
         if (!empty($field_value['#items'][0]['uri'])) {
-          $file_url = file_create_url($field_value['#items'][0]['uri']);
           // Image pseudo-check.
-          if (@getimagesize($file_url)) {
+          if (@file_exists($field_value['#items'][0]['uri'])) {
+            $file_url = file_create_url($field_value['#items'][0]['uri']);
             $bpi_content['images'][] = array(
               'path' => $file_url,
               'alt' => '',
@@ -530,7 +530,6 @@ function bpi_convert_to_bpi($node, $category, $audience, $with_images = FALSE, $
       $bpi_content['body']
     );
   }
-
   return $bpi_content;
 }
 

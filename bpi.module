@@ -293,6 +293,16 @@ function bpi_cron() {
         );
       }
     }
+
+    foreach ($assets as $asset) {
+      $filename = basename($asset);
+      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $asset);
+      $url = file_create_url($managed_file->uri);
+      $url = parse_url($url);
+      $path = $url['path'];
+      $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
+    }
+
     $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
     $node->body[LANGUAGE_NONE][0]['format'] = 'ckeditor';
 
@@ -314,17 +324,6 @@ function bpi_cron() {
       $tid = _bpi_get_term_tid($current_item['agency_name']);
       if ($tid) {
         $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
-      }
-    }
-
-    //@todo Find flexible solution.
-    if (isset($assets['asset1'])) {
-      $path = $assets['asset1'];
-      $filename = basename($path);
-      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $path);
-      if (is_object($managed_file) && !empty($managed_file->fid)) {
-        $managed_file->uid = $uid;
-        $node->field_image[LANGUAGE_NONE][0] = (array)$managed_file;
       }
     }
     node_save($node);
