@@ -300,7 +300,7 @@ function bpi_cron() {
       $url = file_create_url($managed_file->uri);
       $url = parse_url($url);
       $path = $url['path'];
-      $bpi_body = preg_replace('/src="(http:\/\/bpi-ws-no.ci.inlead.dk\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
+      $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
     }
 
     $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
@@ -326,7 +326,6 @@ function bpi_cron() {
         $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
       }
     }
-
     node_save($node);
   }
 
