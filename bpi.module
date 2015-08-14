@@ -326,6 +326,18 @@ function bpi_cron() {
         $node->field_source[LANGUAGE_NONE][0]['tid'] = $tid;
       }
     }
+
+    if (!empty($assets)) {
+      $count = count($assets);
+      $index = rand(1, $count);
+      $path = $assets['asset' . $index];
+      $filename = basename($path);
+      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $path);
+      if (is_object($managed_file) && !empty($managed_file->fid)) {
+        $managed_file->uid = $uid;
+        $node->field_image[LANGUAGE_NONE][0] = (array)$managed_file;
+      }
+    }
     node_save($node);
   }
 
