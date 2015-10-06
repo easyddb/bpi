@@ -272,7 +272,7 @@ function bpi_cron() {
      // Guessing where to put 'body' text in the form.
     $bpi_body = isset($current_item['body']) ? $current_item['body'] : '';
 
-    preg_match_all('/\<\<([\w\s\d]+)\>\>/', $bpi_body, $matches);
+    preg_match_all('/\<\<([\w\s\d]+)\>\>/u', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1], 'tid');
@@ -433,8 +433,7 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
 
     // Guessing where to put 'body' text in the form.
     $bpi_body = isset($bpi_content['body']) ? $bpi_content['body'] : '';
-
-    preg_match_all('/\<\<([\w\s\d]+)\>\>/', $bpi_body, $matches);
+    preg_match_all('/\<\<([\w\sæøå\d]+)\>\>/u', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1]);
