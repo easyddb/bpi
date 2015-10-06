@@ -402,6 +402,20 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
     }
 
     $form['title']['#default_value'] = isset($bpi_content['title']) ? $bpi_content['title'] : '';
+
+    // Add image to the field_image.
+    if (!empty($bpi_assets)) {
+      $count = count($bpi_assets);
+      $index = rand(1, $count);
+      $path = $bpi_assets['asset' . $index];
+      $filename = basename($path);
+      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $path);
+      if (is_object($managed_file) && !empty($managed_file->fid)) {
+        $managed_file->uid = $uid;
+        $form['field_image'][LANGUAGE_NONE][0]['#default_value'] = (array)$managed_file;
+      }
+    }
+
     $teaser = variable_get('bpi_field_teaser', '');
     $body = variable_get('bpi_field_body', '');
     $materials_field = variable_get('bpi_field_materials', '');
