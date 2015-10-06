@@ -241,6 +241,7 @@ function bpi_cron() {
   }
 
   foreach ($response as $item) {
+
     /* @var $item \Bpi\Sdk\Item\Node */
     $current_item = $item->getProperties();
     if (in_array($current_item['id'], $bids)) {
@@ -433,6 +434,16 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
 
     // Guessing where to put 'body' text in the form.
     $bpi_body = isset($bpi_content['body']) ? $bpi_content['body'] : '';
+    foreach ($bpi_assets as $asset) {
+      $filename = basename($asset);
+      $managed_file = bpi_fetch_image('public://bpi/' . $filename, $asset);
+      $url = file_create_url($managed_file->uri);
+      $url = parse_url($url);
+      $path = $url['path'];
+      $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
+    }
+
+    $bpi_body = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
 
     preg_match_all('/\<\<([\w\s\d]+)\>\>/', $bpi_body, $matches);
     $tags = array();
