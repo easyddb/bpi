@@ -404,8 +404,8 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
     $form['title']['#default_value'] = isset($bpi_content['title']) ? $bpi_content['title'] : '';
 
     // Add image to the field_image.
-    if (!empty($bpi_assets)) {
-      $count = count($bpi_assets);
+    $count = count($bpi_assets);
+    if ($count !== 0) {
       $index = rand(1, $count);
       $path = $bpi_assets['asset' . $index];
       $filename = basename($path);
