@@ -14,6 +14,8 @@ projects[file_entity][version] = "2.0-alpha3"
 projects[workflow][subdir] = "contrib"
 projects[workflow][version] = "2.5"
 projects[workflow][patch][] = "http://www.drupal.org/files/issues/features_import-2484297-10.patch"
+; Prevent fatal errors on cron when using Scheduler, https://www.drupal.org/node/2499193.
+projects[workflow][patch][] = "https://www.drupal.org/files/issues/workflow-php_fatal_error_call-2499193-7-2.5.patch"
 
 ; This version of media is tested to work with both images and videos.
 projects[media][type] = "module"
