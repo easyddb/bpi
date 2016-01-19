@@ -101,3 +101,29 @@ function bpi_update_7002(&$sandbox) {
     field_attach_update('node', $node);
   }
 }
+
+/**
+ * Parse body for getting tags with accestend symbols.
+ */
+function bpi_update_7003(&$sandbox) {
+  $query = db_select('bpi_syndicated', 'b');
+  $query->innerJoin('node', 'n', 'b.nid=n.nid');
+  $query->innerJoin('field_data_body', 'body', 'n.nid=body.entity_id');
+  $query->fields('n', array('nid', 'type', 'uid'));
+  $query->fields('body', array('body_value', 'body_format'));
+  $nodes = $query->execute();
+  foreach ($nodes as $node) {
+    $node->body = array(
+      LANGUAGE_NONE => array(
+        0 => array(
+          'value' => preg_replace('/(\<\<[\w\s\d-]+\>\>|{{[\w\d\s-]+}})/u', '', $node->body_value),
+          'format' => $node->body_format,
+        )
+      ),
+    );
+    unset($node->body_value);
+    unset($node->body_format);
+    field_attach_presave('node', $node);
+    field_attach_update('node', $node);
+  }
+}

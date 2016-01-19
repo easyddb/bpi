@@ -466,14 +466,14 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
     }
 
-    preg_match_all('/{{([\w\s\d]+)}}/', $bpi_body, $matches);
+    preg_match_all('/{{([\w\s\d]+)}}/u', $bpi_body, $matches);
     $artists = array();
     if (isset($matches[1])) {
       $artists = _bpi_save_terms($matches[1]);
       $form['field_artist'][LANGUAGE_NONE]['#default_value'] = implode(', ', $artists);
     }
 
-    $bpi_body = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
+    $bpi_body = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/u', '', $bpi_body);
 
     if (!empty($bpi_content['category'])) {
       $tid = _bpi_get_term_tid($bpi_content['category']);
