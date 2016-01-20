@@ -273,7 +273,7 @@ function bpi_cron() {
      // Guessing where to put 'body' text in the form.
     $bpi_body = isset($current_item['body']) ? $current_item['body'] : '';
 
-    preg_match_all('/\<\<([\w\s\d-]+)\>\>/u', $bpi_body, $matches);
+    preg_match_all('/\<\<([^>]+)\>\>/', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1], 'tid');
@@ -284,7 +284,7 @@ function bpi_cron() {
       }
     }
 
-    preg_match_all('/{{([\w\s\d]+)}}/', $bpi_body, $matches);
+    preg_match_all('/{{([^}]+)}}/', $bpi_body, $matches);
     $artists = array();
     if (isset($matches[1])) {
       $artists = _bpi_save_terms($matches[1], 'tid');
@@ -302,9 +302,10 @@ function bpi_cron() {
       $url = parse_url($url);
       $path = $url['path'];
       $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
+      $bpi_body = preg_replace('/srcset="[^"]+"/', '', $bpi_body, 1);
     }
 
-    $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
+    $node->body[LANGUAGE_NONE][0]['value'] = preg_replace('/(\<\<[^>]+\>\>|{{[^}]+}})/', '', $bpi_body);
     $node->body[LANGUAGE_NONE][0]['format'] = 'ckeditor';
 
     if (!empty($current_item['category'])) {
@@ -449,7 +450,7 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
     // Guessing where to put 'body' text in the form.
     $bpi_body = isset($bpi_content['body']) ? $bpi_content['body'] : '';
 
-    preg_match_all('/\<\<([\w\s\d-]+)\>\>/u', $bpi_body, $matches);
+    preg_match_all('/\<\<([^>]+)\>\>/u', $bpi_body, $matches);
     $tags = array();
     if (isset($matches[1])) {
       $tags = _bpi_save_terms($matches[1]);
@@ -465,14 +466,14 @@ function bpi_form_node_form_alter(&$form, &$form_state, $form_id) {
       $bpi_body = preg_replace('/src="(http:\/\/[^\/]+\/images\/image.png)"/', 'src="' . $path . '"', $bpi_body, 1);
     }
 
-    preg_match_all('/{{([\w\s\d]+)}}/', $bpi_body, $matches);
+    preg_match_all('/{{([^}]+)}}/', $bpi_body, $matches);
     $artists = array();
     if (isset($matches[1])) {
       $artists = _bpi_save_terms($matches[1]);
       $form['field_artist'][LANGUAGE_NONE]['#default_value'] = implode(', ', $artists);
     }
 
-    $bpi_body = preg_replace('/(\<\<[\w\s\d]+\>\>|{{[\w\d\s]+}})/', '', $bpi_body);
+    $bpi_body = preg_replace('/(\<\<[^>]+\>\>|{{[^}]+}})/', '', $bpi_body);
 
     if (!empty($bpi_content['category'])) {
       $tid = _bpi_get_term_tid($bpi_content['category']);
